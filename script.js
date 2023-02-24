@@ -18,9 +18,9 @@ window.addEventListener("load", function () {
       this.speedY = 0;
       this.dx = 0;
       this.dy = 0;
-      this.speedModifier = 1;
-      this.spriteWidth = 255;
-      this.spriteHeight = 255;
+      this.speedModifier = 5;
+      this.spriteWidth = 256;
+      this.spriteHeight = 256;
       this.width = this.spriteWidth;
       this.height = this.spriteHeight;
       this.spriteX;
@@ -172,6 +172,9 @@ window.addEventListener("load", function () {
       this.topMargin = 260;
       this.debug = true;
       this.player = new Player(this);
+      this.fps = 70;
+      this.timer = 0;
+      this.interval = 1000 / this.fps;
       this.numberOfObstacles = 10;
       this.obstacles = [];
       this.mouse = {
@@ -201,10 +204,16 @@ window.addEventListener("load", function () {
         if (e.key == "d") this.debug = !this.debug;
       });
     }
-    render(context) {
-      this.obstacles.forEach((obstacle) => obstacle.draw(context));
-      this.player.draw(context);
-      this.player.update();
+    render(context, deltaTime) {
+      if (this.timer > this.interval) {
+        // animate next frame
+        context.clearRect(0, 0, this.width, this.height);
+        this.obstacles.forEach((obstacle) => obstacle.draw(context));
+        this.player.draw(context);
+        this.player.update();
+        this.timer = 0;
+      }
+      this.timer += deltaTime;
     }
     checkCollision(a, b) {
       const dx = a.collisionX - b.collisionX;
@@ -246,10 +255,12 @@ window.addEventListener("load", function () {
   const game = new Game(canvas);
   game.init();
 
-  function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    game.render(ctx);
+  let lastTime = 0;
+  function animate(timeStamp) {
+    const deltaTime = timeStamp - lastTime;
+    lastTime = timeStamp;
+    game.render(ctx, deltaTime);
     requestAnimationFrame(animate);
   }
-  animate();
+  animate(0);
 });
