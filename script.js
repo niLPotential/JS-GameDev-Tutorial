@@ -167,16 +167,20 @@ window.addEventListener("load", function () {
   class Egg {
     constructor(game) {
       this.game = game;
-      this.collisionX = Math.random() * this.game.width;
-      this.collisionY = Math.random() * this.game.height;
       this.collisionRadius = 40;
+      this.margin = this.collisionRadius * 2;
+      this.collisionX = this.margin +
+        (Math.random() * (this.game.width - this.margin * 2));
+      this.collisionY = this.game.topMargin +
+        (Math.random() *
+          (this.game.height - this.game.topMargin - this.margin));
       this.image = document.getElementById("egg");
       this.spriteWidth = 110;
       this.spriteHeight = 135;
       this.width = this.spriteWidth;
       this.height = this.spriteHeight;
-      this.spriteX = this.collisionX + this.width * 0.5;
-      this.spriteY = this.collisionY + this.height * 0.5;
+      this.spriteX = this.collisionX - this.width * 0.5;
+      this.spriteY = this.collisionY - this.height * 0.5 - 30;
     }
     draw(context) {
       context.drawImage(
@@ -213,6 +217,8 @@ window.addEventListener("load", function () {
       this.fps = 70;
       this.timer = 0;
       this.interval = 1000 / this.fps;
+      this.eggTimer = 0;
+      this.eggInterval = 500;
       this.numberOfObstacles = 10;
       this.maxEggs = 10;
       this.obstacles = [];
@@ -249,11 +255,21 @@ window.addEventListener("load", function () {
         // animate next frame
         context.clearRect(0, 0, this.width, this.height);
         this.obstacles.forEach((obstacle) => obstacle.draw(context));
+        this.eggs.forEach((egg) => egg.draw(context));
         this.player.draw(context);
         this.player.update();
         this.timer = 0;
       }
       this.timer += deltaTime;
+
+      // add eggs periodically
+      if (this.eggTimer > this.eggInterval && this.eggs.length < this.maxEggs) {
+        this.addEgg();
+        this.eggTimer = 0;
+        console.log(this.eggs);
+      } else {
+        this.eggTimer += deltaTime;
+      }
     }
     checkCollision(a, b) {
       const dx = a.collisionX - b.collisionX;
@@ -263,6 +279,7 @@ window.addEventListener("load", function () {
       return [distance < sumOfRadii, distance, sumOfRadii, dx, dy];
     }
     addEgg() {
+      this.eggs.push(new Egg(this));
     }
     init() {
       let attempts = 0;
