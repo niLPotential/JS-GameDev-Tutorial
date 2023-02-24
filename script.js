@@ -162,6 +162,7 @@ window.addEventListener("load", function () {
         context.stroke();
       }
     }
+    update() {}
   }
 
   class Egg {
@@ -221,6 +222,19 @@ window.addEventListener("load", function () {
           this.collisionY = object.collisionY + (sumOfRadii + 1) * unit_y;
         }
       });
+      // horizontal boundaries
+      if (this.collisionX < this.collisionRadius) {
+        this.collisionX = this.collisionRadius;
+      } else if (this.collisionX > this.game.width - this.collisionRadius) {
+        this.collisionX = this.game.width - this.collisionRadius;
+      }
+
+      // vertical boundaries
+      if (this.collisionY < this.game.topMargin + this.collisionRadius) {
+        this.collisionY = this.game.topMargin + this.collisionRadius;
+      } else if (this.collisionY > this.game.height - this.collisionRadius) {
+        this.collisionY = this.game.height - this.collisionRadius;
+      }
     }
   }
 
@@ -241,6 +255,7 @@ window.addEventListener("load", function () {
       this.maxEggs = 10;
       this.obstacles = [];
       this.eggs = [];
+      this.gameObjects = [];
       this.mouse = {
         x: this.width * 0.5,
         y: this.height * 0.5,
@@ -272,13 +287,16 @@ window.addEventListener("load", function () {
       if (this.timer > this.interval) {
         // animate next frame
         context.clearRect(0, 0, this.width, this.height);
-        this.obstacles.forEach((obstacle) => obstacle.draw(context));
-        this.eggs.forEach((egg) => {
-          egg.draw(context);
-          egg.update();
+        this.gameObjects = [...this.eggs, ...this.obstacles, this.player];
+        // sort by vertical position
+        this.gameObjects.sort((a, b) => {
+          return a.collisionY - b.collisionY;
         });
-        this.player.draw(context);
-        this.player.update();
+
+        this.gameObjects.forEach((object) => {
+          object.draw(context);
+          object.update();
+        });
         this.timer = 0;
       }
       this.timer += deltaTime;
